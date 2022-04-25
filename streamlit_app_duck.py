@@ -24,13 +24,13 @@ from pyarrow import csv
 import numpy as np
 import altair as alt
 import pydeck as pdk
-from pyinstrument import Profiler
+# from pyinstrument import Profiler
 
 # SETTING PAGE CONFIG TO WIDE MODE
 st.set_page_config(layout="wide")
 
-profiler = Profiler(interval=0.0001)
-profiler.start()
+# profiler = Profiler(interval=0.0001)
+# profiler.start()
 
 # LOAD DUCKDB ONCE
 @st.experimental_singleton
@@ -163,7 +163,7 @@ st.altair_chart(
     .configure_mark(opacity=0.2, color="red"),
     use_container_width=True,
 )
-profiler.stop()
+# profiler.stop()
 
-profiler.print()
-(Path('profiles') / f"Duck_Load_{datetime.now().isoformat()}.html").write_text(profiler.output_html())
+# profiler.print()
+# (Path('profiles') / f"Duck_Load_{datetime.now().isoformat()}.html").write_text(profiler.output_html())
