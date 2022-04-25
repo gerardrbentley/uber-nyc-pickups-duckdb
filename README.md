@@ -45,7 +45,7 @@ Then you have an in memory analysis object ready to go.
 
 ```sh
 pip install -r https://raw.githubusercontent.com/gerardrbentley/uber-nyc-pickups-duckdb/main/requirements.txt
-streamlit run https://raw.githubusercontent.com/gerardrbentley/uber-nyc-pickups-duckdb/main/streamlit_app.py
+streamlit run https://raw.githubusercontent.com/gerardrbentley/uber-nyc-pickups-duckdb/main/streamlit_app_duck.py
 ```
 
 ### Questions? Comments?
