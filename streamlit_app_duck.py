@@ -35,14 +35,16 @@ st.set_page_config(layout="wide")
 # LOAD DUCKDB ONCE
 @st.experimental_singleton
 def load_data():
-    data = csv.read_csv('uber-raw-data-sep14.csv.gz', convert_options=csv.ConvertOptions(
-        include_columns=["Date/Time","Lat","Lon"],
-        timestamp_parsers=['%m/%d/%Y %H:%M:%S']
-    )).rename_columns(['date/time', 'lat', 'lon'])
+    data = csv.read_csv(
+        "uber-raw-data-sep14.csv.gz",
+        convert_options=csv.ConvertOptions(
+            include_columns=["Date/Time", "Lat", "Lon"],
+            timestamp_parsers=["%m/%d/%Y %H:%M:%S"],
+        ),
+    ).rename_columns(["date/time", "lat", "lon"])
 
-    # We transform the dataset into a DuckDB relation
-    data = duckdb.arrow(data)
-    return data.arrow().to_pandas()
+    con = duckdb.connect(database=":memory:")
+    return data, con
 
 
 # FUNCTION FOR AIRPORT MAPS
@@ -74,30 +76,34 @@ def map(data, lat, lon, zoom):
 
 # FILTER DATA FOR A SPECIFIC HOUR, CACHE
 @st.experimental_memo
-def filterdata(df, hour_selected):
-    return df[df["date/time"].dt.hour == hour_selected]
+def filterdata(hour_selected):
+    data, con = load_data()
+    return con.query(
+        f'SELECT "date/time", lat, lon FROM data WHERE hour("date/time") = {hour_selected}'
+    ).to_df()
 
 
 # CALCULATE MIDPOINT FOR GIVEN SET OF DATA
 @st.experimental_memo
-def mpoint(lat, lon):
-    return (np.average(lat), np.average(lon))
+def mpoint():
+    data, con = load_data()
+    return tuple(con.query("SELECT AVG(lat), AVG(lon) FROM data").fetchone())
 
 
 # FILTER DATA BY HOUR
 @st.experimental_memo
-def histdata(df, hr):
-    filtered = data[
-        (df["date/time"].dt.hour >= hr) & (df["date/time"].dt.hour < (hr + 1))
-    ]
+def histdata(hr):
+    data, con = load_data()
+    filtered = con.execute(
+        f'SELECT minute("date/time") FROM data WHERE hour("date/time") >= {hr} and hour("date/time") < {hr + 1}'
+    ).fetchall()
 
-    hist = np.histogram(filtered["date/time"].dt.minute, bins=60, range=(0, 60))[0]
+    hist = np.histogram(filtered, bins=60, range=(0, 60))[0]
 
     return pd.DataFrame({"minute": range(60), "pickups": hist})
 
 
 # STREAMLIT APP LAYOUT
-data = load_data()
 # LAYING OUT THE TOP SECTION OF THE APP
 row1_1, row1_2 = st.columns((2, 3))
 
@@ -122,28 +128,28 @@ la_guardia = [40.7900, -73.8700]
 jfk = [40.6650, -73.7821]
 newark = [40.7090, -74.1805]
 zoom_level = 12
-midpoint = mpoint(data["lat"], data["lon"])
+midpoint = mpoint()
 
 with row2_1:
     st.write(
         f"""**All New York City from {hour_selected}:00 and {(hour_selected + 1) % 24}:00**"""
     )
-    map(filterdata(data, hour_selected), midpoint[0], midpoint[1], 11)
+    map(filterdata(hour_selected), midpoint[0], midpoint[1], 11)
 
 with row2_2:
     st.write("**La Guardia Airport**")
-    map(filterdata(data, hour_selected), la_guardia[0], la_guardia[1], zoom_level)
+    map(filterdata(hour_selected), la_guardia[0], la_guardia[1], zoom_level)
 
 with row2_3:
     st.write("**JFK Airport**")
-    map(filterdata(data, hour_selected), jfk[0], jfk[1], zoom_level)
+    map(filterdata(hour_selected), jfk[0], jfk[1], zoom_level)
 
 with row2_4:
     st.write("**Newark Airport**")
-    map(filterdata(data, hour_selected), newark[0], newark[1], zoom_level)
+    map(filterdata(hour_selected), newark[0], newark[1], zoom_level)
 
 # CALCULATING DATA FOR THE HISTOGRAM
-chart_data = histdata(data, hour_selected)
+chart_data = histdata(hour_selected)
 
 # LAYING OUT THE HISTOGRAM SECTION
 st.write(
