@@ -1,4 +1,4 @@
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/gerardrbentley/uber-nyc-pickups-duckdb/main)
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/gerardrbentley/uber-nyc-pickups-duckdb/main/streamlit_app_duck.py)
 
 # Streamlit + DuckDB Demo: Uber Pickups in New York City
 

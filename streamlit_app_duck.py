@@ -43,8 +43,7 @@ def load_data():
         ),
     ).rename_columns(["date/time", "lat", "lon"])
 
-    con = duckdb.connect(database=":memory:")
-    return data, con
+    return duckdb.from_arrow(data)
 
 
 # FUNCTION FOR AIRPORT MAPS
@@ -77,30 +76,26 @@ def map(data, lat, lon, zoom):
 # FILTER DATA FOR A SPECIFIC HOUR, CACHE
 @st.experimental_memo
 def filterdata(hour_selected):
-    data, con = load_data()
-    return con.query(
-        f'SELECT "date/time", lat, lon FROM data WHERE hour("date/time") = {hour_selected}'
-    ).to_df()
+    data = load_data()
+    return data.filter(f'hour("date/time") = {hour_selected}').to_df()
 
 
 # CALCULATE MIDPOINT FOR GIVEN SET OF DATA
 @st.experimental_memo
 def mpoint():
-    data, con = load_data()
-    return tuple(con.query("SELECT AVG(lat), AVG(lon) FROM data").fetchone())
+    data = load_data()
+    return tuple(data.query("data", "SELECT AVG(lat), AVG(lon) FROM data").fetchone())
 
 
 # FILTER DATA BY HOUR
 @st.experimental_memo
 def histdata(hr):
-    data, con = load_data()
-    filtered = con.execute(
-        f'SELECT minute("date/time") FROM data WHERE hour("date/time") >= {hr} and hour("date/time") < {hr + 1}'
-    ).fetchall()
-
-    hist = np.histogram(filtered, bins=60, range=(0, 60))[0]
-
-    return pd.DataFrame({"minute": range(60), "pickups": hist})
+    data = load_data()
+    hist_query = f'SELECT histogram(minute("date/time")) FROM hist WHERE hour("date/time") >= {hr} and hour("date/time") < {hr + 1}'
+    (results,) = data.query("hist", hist_query).fetchone()
+    df = pd.DataFrame(results)
+    df.columns = ["minute", "pickups"]
+    return df
 
 
 # STREAMLIT APP LAYOUT
@@ -150,7 +145,6 @@ with row2_4:
 
 # CALCULATING DATA FOR THE HISTOGRAM
 chart_data = histdata(hour_selected)
-
 # LAYING OUT THE HISTOGRAM SECTION
 st.write(
     f"""**Breakdown of rides per minute between {hour_selected}:00 and {(hour_selected + 1) % 24}:00**"""
