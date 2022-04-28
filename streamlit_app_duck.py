@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Modified by Gerard Bentley
+
 """An example of showing geographic data."""
 
 from datetime import datetime
