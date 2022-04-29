@@ -30,5 +30,5 @@ def download_s3_folder(bucket_name, s3_folder, local_dir=None):
             time.sleep(60)
             bucket.download_file(obj.key, target)
 
-
-download_s3_folder("ursa-labs-taxi-data", "", "nyc-taxi")
+if __name__ == '__main__':
+    download_s3_folder("ursa-labs-taxi-data", "", "nyc-taxi")
