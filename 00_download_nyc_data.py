@@ -29,6 +29,7 @@ def download_s3_folder(bucket_name, s3_folder, local_dir=None):
         except ResponseStreamingError:
             time.sleep(60)
             bucket.download_file(obj.key, target)
+        print(f"downloaded {target}")
 
 if __name__ == '__main__':
     print("BEGIN DOWNLOAD")
