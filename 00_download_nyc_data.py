@@ -32,6 +32,6 @@ def download_s3_folder(bucket_name, s3_folder, local_dir=None):
         print(f"downloaded {target}")
 
 if __name__ == '__main__':
-    print("BEGIN DOWNLOAD")
+    print("BEGIN DOWNLOAD!")
     download_s3_folder("ursa-labs-taxi-data", "", "nyc-taxi")
     print("DONE DOWNLOAD!!!")
