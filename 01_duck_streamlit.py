@@ -118,7 +118,7 @@ elif view == filter_pushdown:
     st.metric("Duck DB Runtime", duckdb_runtime, pandas_runtime - duckdb_runtime)
 elif view == taxi:
     st.header(taxi)
-    "As demonstrated before, DuckDB is capable of consuming and producing Arrow data in a streaming fashion. In this section we run a simple benchmark, to showcase the benefits in speed and memory usage when comparing it to full materialization and Pandas. This example uses the full NYC taxi dataset which you can download"
+    "This example uses the full NYC taxi dataset which you can download. It filters data in a streaming fashion from DuckDB. Notably Pandas has to load the entire dataset into memory to filter."
     since_year = st.number_input('Rows Since Year', 2009, 2019, 2014, 1)
     min_amount = st.number_input('Minimum Fare', 10, 10000, 100, 10)
     with st.echo():
