@@ -116,7 +116,7 @@ elif view == filter_pushdown:
     st.write(f"Finished in {pandas_runtime} seconds")
     st.write(new_table)
     st.metric("Duck DB Runtime", duckdb_runtime, pandas_runtime - duckdb_runtime)
-if view == stream:
+elif view == stream:
     st.header(stream)
     "As demonstrated before, DuckDB is capable of consuming and producing Arrow data in a streaming fashion. In this section we run a simple benchmark, to showcase the benefits in speed and memory usage when comparing it to full materialization and Pandas. This example uses the full NYC taxi dataset which you can download"
     with st.echo():

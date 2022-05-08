@@ -55,6 +55,8 @@ Not available on streamlit cloud due to storage limitations.
 
 Going deeper into the DuckDB / Arrow power, we can filter and analyze even larger datasets.
 
+We can select `304,851` interesting rows from all `1,547,741,381` in the 10 year dataset in < 3 seconds on a laptop!
+
 The following
 
 ```sh
