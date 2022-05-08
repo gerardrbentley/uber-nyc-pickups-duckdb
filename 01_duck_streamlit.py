@@ -15,8 +15,8 @@ with st.echo():
 home = "Duck DB NYC Taxi Analysis"
 projection_pushdown = "Line Items Projection Pushdown"
 filter_pushdown = "Line Items Filter Pushdown"
-stream = "NYC Taxi Stream"
-view = st.sidebar.radio("Page View", [home, projection_pushdown, filter_pushdown, stream])
+taxi = "NYC Taxi Query"
+view = st.sidebar.radio("Page View", [home, projection_pushdown, filter_pushdown, taxi])
 
 if view == home:
     st.header(home)
@@ -27,7 +27,7 @@ Downloading the full dataset requires ~40 GB storage space
 
 Final example requires ~250 GB of memory / swap...
 
-Choose "NYC Taxi Stream" on the left to see DuckDB + Arrow speed through 10 years of data in ~3 seconds in Streamlit (laptop benchmark. duckdb benchmark ~0.05 seconds)
+Choose "NYC Taxi Query" on the left to see DuckDB + Arrow speed through 10 years of data in ~3 seconds in Streamlit (laptop benchmark. duckdb benchmark ~0.05 seconds)
 """
 elif view == projection_pushdown:
     st.header(projection_pushdown)
@@ -116,9 +116,11 @@ elif view == filter_pushdown:
     st.write(f"Finished in {pandas_runtime} seconds")
     st.write(new_table)
     st.metric("Duck DB Runtime", duckdb_runtime, pandas_runtime - duckdb_runtime)
-elif view == stream:
-    st.header(stream)
+elif view == taxi:
+    st.header(taxi)
     "As demonstrated before, DuckDB is capable of consuming and producing Arrow data in a streaming fashion. In this section we run a simple benchmark, to showcase the benefits in speed and memory usage when comparing it to full materialization and Pandas. This example uses the full NYC taxi dataset which you can download"
+    since_year = st.number_input('Rows Since Year', 2009, 2019, 2014, 1)
+    min_amount = st.number_input('Minimum Fare', 10, 10000, 100, 10)
     with st.echo():
         # DuckDB
         # Open dataset using year,month folder partition
@@ -130,7 +132,7 @@ elif view == stream:
 
         # Run query that selects part of the data
         query = con.execute(
-            "SELECT total_amount, passenger_count,year,pickup_at, pickup_longitude as lon, pickup_latitude as lat FROM nyc where total_amount > 100 and year > 2014 and lat is not null and lon is not null"
+            f"SELECT total_amount, passenger_count,year,pickup_at, pickup_longitude as lon, pickup_latitude as lat FROM nyc where total_amount > {min_amount} and year > {since_year} and lat is not null and lon is not null"
         )
 
         # Create Record Batch Reader from Query Result.
@@ -151,6 +153,35 @@ elif view == stream:
         data = pa.Table.from_batches(all_chunks)
     duckdb_runtime = end_time - start_time
     st.write(f"Finished in {duckdb_runtime} seconds")
+
+    st.metric("Duck DB Runtime", duckdb_runtime)
+    df = data.to_pandas()
+    st.write(len(df))
+
+    st.write(
+        pdk.Deck(
+            map_style="mapbox://styles/mapbox/light-v9",
+            initial_view_state={
+                "latitude": 40.7,
+                "longitude": -73.9,
+                "zoom": 10,
+                "pitch": 50,
+            },
+            layers=[
+                pdk.Layer(
+                    "HexagonLayer",
+                    data=df[['lon', 'lat']],
+                    get_position=["lon", "lat"],
+                    radius=100,
+                    elevation_scale=4,
+                    elevation_range=[0, 1000],
+                    pickable=True,
+                    extruded=True,
+                ),
+            ],
+        )
+    )
+    st.write(df)
     st.write(data)
 
     st.write("The below pandas example uses ~250 GB of memory. Run it if you've got it!")
@@ -205,32 +236,3 @@ elif view == stream:
     # pandas_runtime = end_time - start_time
     # st.write(f"Finished in {pandas_runtime} seconds")
     # st.write(new_table)
-
-    st.metric("Duck DB Runtime", duckdb_runtime)
-    df = data.to_pandas()
-    st.write(df)
-    st.write(len(df))
-
-    st.write(
-        pdk.Deck(
-            map_style="mapbox://styles/mapbox/light-v9",
-            initial_view_state={
-                "latitude": 40.7,
-                "longitude": -73.9,
-                "zoom": 12,
-                "pitch": 50,
-            },
-            layers=[
-                pdk.Layer(
-                    "HexagonLayer",
-                    data=df[['lon', 'lat']],
-                    get_position=["lon", "lat"],
-                    radius=100,
-                    elevation_scale=4,
-                    elevation_range=[0, 1000],
-                    pickable=True,
-                    extruded=True,
-                ),
-            ],
-        )
-    )
