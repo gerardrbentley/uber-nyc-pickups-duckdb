@@ -19,14 +19,14 @@ From left to right:
 
 ## Analysis
 
-*TODO:* Compare filtering and averaging midpoint with duckdb
+Read more in the accompanying [blog post](https://tech.gerardbentley.com/python/data/intermediate/2022/04/26/holy-duck.html) ✍🏻
 
 I wrote the `load_data` function above to match what the original code does, which is **load** the data into a `Dataframe`, not just load the schema.
 After it's loaded then `pandas` and `numpy` are used for some additional filtering and computation.
 
 The real point of `duckdb` is to do your filtering and computation **before** loading all of your data into memory.
 
-For parity with the streamlit demo `load_data` looks like:
+For parity with the streamlit demo `load_data` originally would be:
 
 ```py
     data = duckdb.arrow(data)
@@ -48,6 +48,18 @@ pip install -r https://raw.githubusercontent.com/gerardrbentley/uber-nyc-pickups
 streamlit run https://raw.githubusercontent.com/gerardrbentley/uber-nyc-pickups-duckdb/main/streamlit_app_duck.py
 ```
 
-### Questions? Comments?
+## Analyzing multiple years of data
 
-Please ask in the [Streamlit community](https://discuss.streamlit.io).
+*NOTE:* The following will download 40 GB of data to your machine.
+Not available on streamlit cloud due to storage limitations.
+
+Going deeper into the DuckDB / Arrow power, we can filter and analyze even larger datasets.
+
+The following
+
+```sh
+wget https://github.com/cwida/duckdb-data/releases/download/v1.0/lineitemsf1.snappy.parquet
+python -m pip install boto3
+python 00_download_nyc_data.py
+streamlit run 01_duck_streamlit.py
+```
