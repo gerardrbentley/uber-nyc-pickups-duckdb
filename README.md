@@ -2,7 +2,8 @@
 
 # Streamlit + DuckDB Demo: Uber Pickups in New York City
 
-Inspired / Copied from [streamlit demo repo](https://github.com/streamlit/demo-uber-nyc-pickups)
+- `streamlit_app_duck.py`: Inspired / Copied from [streamlit demo repo](https://github.com/streamlit/demo-uber-nyc-pickups)
+- `01_duck_streamlit.py`: Inspired / Copied from [duckdb](https://duckdb.org/2021/12/03/duck-arrow.html) and [arrow](https://arrow.apache.org/blog/2021/12/03/arrow-duckdb/) blog post
 
 A [Streamlit](https://streamlit.io) demo converted to utilize [DuckDB](https://duckdb.org/docs/api/python) to run data analysis faster and on more data than raw pandas.
 

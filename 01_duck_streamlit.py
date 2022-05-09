@@ -119,7 +119,7 @@ elif view == filter_pushdown:
 elif view == taxi:
     st.header(taxi)
     "This example uses the full NYC taxi dataset which you can download. It filters data in a streaming fashion from DuckDB. Notably Pandas has to load the entire dataset into memory to filter."
-    since_year = st.number_input('Rows Since Year', 2009, 2019, 2014, 1)
+    row_year = st.number_input('Rows in Year', 2009, 2019, 2014, 1)
     min_amount = st.number_input('Minimum Fare', 10, 10000, 100, 10)
     with st.echo():
         # DuckDB
@@ -132,7 +132,7 @@ elif view == taxi:
 
         # Run query that selects part of the data
         query = con.execute(
-            f"SELECT total_amount, passenger_count,year,pickup_at, pickup_longitude as lon, pickup_latitude as lat FROM nyc where total_amount > {min_amount} and year > {since_year} and lat is not null and lon is not null"
+            f"SELECT total_amount, passenger_count,year,pickup_at, pickup_longitude as lon, pickup_latitude as lat FROM nyc where total_amount > {min_amount} and year > {row_year} and lat is not null and lon is not null"
         )
 
         # Create Record Batch Reader from Query Result.
