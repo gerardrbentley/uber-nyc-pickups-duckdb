@@ -28,14 +28,14 @@ import altair as alt
 import pydeck as pdk
 # from pyinstrument import Profiler
 
-# SETTING PAGE CONFIG TO WIDE MODE
-st.set_page_config(layout="wide")
+# SETTING PAGE CONFIG TO WIDE MODE AND ADDING A TITLE AND FAVICON
+st.set_page_config(layout="wide", page_title="NYC Ridesharing Demo", page_icon=":taxi:")
 
 # profiler = Profiler(interval=0.0001)
 # profiler.start()
 
 # LOAD DUCKDB ONCE
-@st.experimental_singleton
+@st.cache_resource
 def load_data():
     data = csv.read_csv(
         "uber-raw-data-sep14.csv.gz",
@@ -76,21 +76,21 @@ def map(data, lat, lon, zoom):
 
 
 # FILTER DATA FOR A SPECIFIC HOUR, CACHE
-@st.experimental_memo
+@st.cache_data
 def filterdata(hour_selected):
     data = load_data()
     return data.filter(f'hour("date/time") = {hour_selected}').to_df()
 
 
 # CALCULATE MIDPOINT FOR GIVEN SET OF DATA
-@st.experimental_memo
+@st.cache_data
 def mpoint():
     data = load_data()
     return tuple(data.query("data", "SELECT AVG(lat), AVG(lon) FROM data").fetchone())
 
 
 # FILTER DATA BY HOUR
-@st.experimental_memo
+@st.cache_data
 def histdata(hr):
     data = load_data()
     hist_query = f'SELECT histogram(minute("date/time")) FROM hist WHERE hour("date/time") >= {hr} and hour("date/time") < {hr + 1}'
@@ -104,9 +104,30 @@ def histdata(hr):
 # LAYING OUT THE TOP SECTION OF THE APP
 row1_1, row1_2 = st.columns((2, 3))
 
+# SEE IF THERE'S A QUERY PARAM IN THE URL (e.g. ?pickup_hour=2)
+# THIS ALLOWS YOU TO PASS A STATEFUL URL TO SOMEONE WITH A SPECIFIC HOUR SELECTED,
+# E.G. https://share.streamlit.io/streamlit/demo-uber-nyc-pickups/main?pickup_hour=2
+if not st.session_state.get("url_synced", False):
+    try:
+        pickup_hour = int(st.experimental_get_query_params()["pickup_hour"][0])
+        st.session_state["pickup_hour"] = pickup_hour
+        st.session_state["url_synced"] = True
+    except KeyError:
+        pass
+
+
+# IF THE SLIDER CHANGES, UPDATE THE QUERY PARAM
+def update_query_params():
+    hour_selected = st.session_state["pickup_hour"]
+    st.experimental_set_query_params(pickup_hour=hour_selected)
+
+
 with row1_1:
     st.title("NYC Uber Ridesharing Data")
-    hour_selected = st.slider("Select hour of pickup", 0, 23)
+    hour_selected = st.slider(
+        "Select hour of pickup", 0, 23, key="pickup_hour", on_change=update_query_params
+    )
+
 
 with row1_2:
     st.write(

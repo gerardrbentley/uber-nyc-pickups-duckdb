@@ -1,1 +1,9 @@
 nyc-taxi
+*.html
+.vscode
+.ipynb_checkpoints
+.github
+*logs
+.pytest_cache
+.DS_store
+profiles
